@@ -96,9 +96,10 @@ export default defineComponent({
 
         const recipientDID = erikaBlankDID;
         const senderDID = this.did;
+        const subject = "Hello from Teadate"
         const data = {
           data: [{
-            subject: "Hello from Teadate (data)",
+            subject: subject,
             message: "I love your eyes. Would you like to meet for coffee...tea...or me?"
           }]
         };
@@ -110,7 +111,7 @@ export default defineComponent({
             senderDID,
             "inbox/type/message",
             data,
-            "Hello from Teadate",
+            subject,
             config
         );
         console.log("mjo called send()");
