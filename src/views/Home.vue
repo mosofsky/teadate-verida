@@ -3,7 +3,7 @@
   <div style="text-align: center">
     <div>
       <h1>My Profile</h1>
-      <h3>Gender: {{ gender }}</h3>
+      <h3>Pronouns: {{ pronouns }}</h3>
     </div>
 
     <br/>
@@ -37,15 +37,15 @@ const pecheDiIID = "did:vda:0x944874d92F5eb69E1Defe02e76c61e76329642fb";
 
 const NOT_SET = "";
 
-const MALE = "Male";
-const FEMALE = "Female";
+const HE_HIM = "he/him";
+const SHE_HER = "she/her";
 const POSITIVE = "Positive";
 const NEGATIVE = "Negative";
 
 interface IData {
   did: string;
   contextName: string | undefined;
-  gender: string | undefined;
+  pronouns: string | undefined;
   match_list: string[];
 }
 
@@ -75,7 +75,7 @@ async function populateMatchList(vContext: any, loggedInUserID: string, myThis: 
   myThis.match_list = match_list;
 }
 
-async function requestGender(userID: string, messaging: Messaging, myThis: any) {
+async function requestPronouns(userID: string, messaging: Messaging, myThis: any) {
   const type = 'inbox/type/dataRequest'
 
   const data = {
@@ -83,7 +83,7 @@ async function requestGender(userID: string, messaging: Messaging, myThis: any) 
     filter: {},
     userSelect: true
   }
-  const message = "Please share your gender 1248"
+  const message = "Please share your pronouns"
   const config = {
     did: userID,
     recipientContextName: 'Verida: Vault'
@@ -94,17 +94,17 @@ async function requestGender(userID: string, messaging: Messaging, myThis: any) 
   const listener = await messaging.onMessage(function (inboxEntry: any) {
     console.log("mjo =====> New inbox message received", inboxEntry);
     const result = inboxEntry.data.data[0].result;
-    let gender = NOT_SET;
+    let pronouns = NOT_SET;
     if (NEGATIVE === result) {
-      gender = MALE;
+      pronouns = HE_HIM;
     }
     if (POSITIVE === result) {
-      gender = FEMALE;
+      pronouns = SHE_HER;
     }
-    if (NOT_SET === gender) {
-      throw new Error("Could not set gender, received result=|" + result + "|");
+    if (NOT_SET === pronouns) {
+      throw new Error("Could not set pronouns, received result=|" + result + "|");
     }
-    myThis.gender = gender;
+    myThis.pronouns = pronouns;
   });
 }
 
@@ -160,7 +160,7 @@ export default defineComponent({
     return {
       did: "",
       contextName: "",
-      gender: "",
+      pronouns: "",
       match_list: [],
     };
   },
@@ -190,15 +190,15 @@ export default defineComponent({
 
         const messaging = await vContext.getMessaging();
 
-        const genderPromise = requestGender(this.did, messaging, this);
-        genderPromise.then((value) => {
-          console.log("Successfully requested gender", value);
+        const pronounsPromise = requestPronouns(this.did, messaging, this);
+        pronounsPromise.then((value) => {
+          console.log("Successfully requested pronouns", value);
         });
-        genderPromise.catch((reason) => {
-          console.log("Error sending requesting gender", reason);
+        pronounsPromise.catch((reason) => {
+          console.log("Error sending requesting pronouns", reason);
         });
-        genderPromise.finally(() => {
-          console.log("Finally reached for requesting gender");
+        pronounsPromise.finally(() => {
+          console.log("Finally reached for requesting pronouns");
         });
 
       //   const senderDID = this.did;
