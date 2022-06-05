@@ -1,6 +1,6 @@
 <template>
   <header class="header">
-    <div><img src="../assets/images/verida_logo.svg" alt="logo" /></div>
+    <div><img src="https://pbs.twimg.com/profile_images/748692664694951936/DCP4cCmC_400x400.jpg" alt="Teadate" width="75" height="75"/></div>
     <vda-account
       :logo="logo"
       :contextName="contextName"
