@@ -13,9 +13,9 @@
     <div>
       <h1>My Matches</h1>
       <ol>
-        <li>{{ match_list.hasOwnProperty(0) ? match_list[0] : "" }}</li>
-        <li>{{ match_list.hasOwnProperty(1) ? match_list[1] : "" }}</li>
-        <li>{{ match_list.hasOwnProperty(2) ? match_list[2] : "" }}</li>
+        <li>{{ match_list.hasOwnProperty(0) ? match_list[0] : "" }}<button @click="sendMessageEventHandler(match_list[0])">💬</button></li>
+        <li>{{ match_list.hasOwnProperty(1) ? match_list[1] : "" }}<button @click="sendMessageEventHandler(match_list[1])">💬</button></li>
+        <li>{{ match_list.hasOwnProperty(2) ? match_list[2] : "" }}<button @click="sendMessageEventHandler(match_list[2])">💬</button></li>
       </ol>
     </div>
 
@@ -30,6 +30,10 @@ import AppHeader from "@/components/Header.vue";
 import {mapState} from "vuex";
 
 const {VUE_APP_CONTEXT_NAME, VUE_APP_LOGO, VUE_APP_LOGIN_TEXT} = process.env;
+
+const MICHAEL_OSOFSKY = "Michael Osofsky";
+const PECHE_DI = "Pêche Di";
+const ERIKA_BLANK = "Erika Blank";
 
 const michaelOsofskyDID = "did:vda:0x911Ce7c9eD78fC37DC48820b894152B7C4f16840";
 const erikaBlankDID = "did:vda:0x28e4FDb4f9DfD9c37383249D2d7b1F818e33541c";
@@ -200,31 +204,42 @@ export default defineComponent({
         pronounsPromise.finally(() => {
           console.log("Finally reached for requesting pronouns");
         });
+      }
+    },
+    async sendMessageEventHandler(recipient: string) {
+      console.log("Sending message to bae", recipient);
 
-      //   const senderDID = this.did;
-      //
-      //   const NOT_SET = "";
-      //   let recipientDID = NOT_SET;
-      //   if (michaelOsofskyDID === senderDID) {
-      //     recipientDID = erikaBlankDID;
-      //   }
-      //   if (erikaBlankDID === senderDID) {
-      //     recipientDID = michaelOsofskyDID;
-      //   }
-      //   if (NOT_SET !== recipientDID) {
-      //
-      //     const profileConnection = await vContext.getClient().openPublicProfile(senderDID, 'Verida: Vault', 'basicProfile');
-      //     let senderName = NOT_SET;
-      //     if (undefined !== profileConnection) {
-      //         const publicProfile = await profileConnection.getMany({}, {});
-      //         senderName = publicProfile.name;
-      //         sendMessage(senderName, recipientDID, messaging);
-      //     } else {
-      //         throw new Error("TEADATE_ERROR: profileConnection is undefined");
-      //     }
-      //   } else {
-      //     throw new Error("TEADATE_ERROR: Could not find a match for logged in user |" + senderDID + "|");
-      //   }
+      const vContext = this.$options.veridaContext;
+      if (undefined === vContext) {
+        throw new Error("Cannot send message because have no vContext");
+      }
+
+      const senderDID = this.did;
+
+      const NOT_SET = "";
+      let recipientDID = NOT_SET;
+      if (MICHAEL_OSOFSKY === recipient) {
+        recipientDID = michaelOsofskyDID;
+      }
+      if (PECHE_DI === recipient) {
+        recipientDID = pecheDiIID;
+      }
+      if (ERIKA_BLANK === recipient) {
+        recipientDID = erikaBlankDID;
+      }
+      if (NOT_SET !== recipientDID) {
+        const profileConnection = await vContext.getClient().openPublicProfile(senderDID, 'Verida: Vault', 'basicProfile');
+        let senderName = NOT_SET;
+        if (undefined !== profileConnection) {
+          const publicProfile = await profileConnection.getMany({}, {});
+          senderName = publicProfile.name;
+          const messaging = await vContext.getMessaging();
+          sendMessage(senderName, recipientDID, messaging);
+        } else {
+          throw new Error("TEADATE_ERROR: profileConnection is undefined");
+        }
+      } else {
+        throw new Error("TEADATE_ERROR: Could not find a match for logged in user |" + senderDID + "|");
       }
     },
 
