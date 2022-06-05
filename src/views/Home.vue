@@ -13,9 +13,9 @@
     <div>
       <h1>My Matches</h1>
       <ol>
-        <li>{{ match_list.hasOwnProperty(0) ? match_list[0] : "" }}<button @click="sendMessageEventHandler(match_list[0])">💬</button></li>
-        <li>{{ match_list.hasOwnProperty(1) ? match_list[1] : "" }}<button @click="sendMessageEventHandler(match_list[1])">💬</button></li>
-        <li>{{ match_list.hasOwnProperty(2) ? match_list[2] : "" }}<button @click="sendMessageEventHandler(match_list[2])">💬</button></li>
+        <li>{{ match_list.hasOwnProperty(0) ? match_list[0] + " " : "_________________________ " }}<button @click="sendMessageEventHandler(match_list[0])">💬</button></li>
+        <li>{{ match_list.hasOwnProperty(1) ? match_list[1] + " " : "_________________________ " }}<button @click="sendMessageEventHandler(match_list[1])">💬</button></li>
+        <li>{{ match_list.hasOwnProperty(2) ? match_list[2] + " " : "_________________________ " }}<button @click="sendMessageEventHandler(match_list[2])">💬</button></li>
       </ol>
     </div>
 
