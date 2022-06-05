@@ -97,7 +97,8 @@ export default defineComponent({
         const recipientDID = erikaBlankDID;
         const senderDID = this.did;
         const data = {
-          data: ["I love your eyes. Would you like to meet for coffee...tea...or me? (data object)"]
+          subject: "Hello from Teadate (data)",
+          message: "I love your eyes. Would you like to meet for coffee...tea...or me?"
         };
         const config = {
           did: recipientDID,
