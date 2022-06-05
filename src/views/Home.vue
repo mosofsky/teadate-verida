@@ -35,6 +35,27 @@ interface IData {
   contextName: string | undefined;
 }
 
+async function requestGender(userID: string, messaging: Messaging) {
+  const type = 'inbox/type/dataRequest'
+
+  const data = {
+    requestSchema: "https://common.schemas.verida.io/health/pathology/tests/covid19/pcr/v0.1.0/schema.json",
+    filter: {},
+    userSelect: true
+  }
+  const message = "Please share your gender 1248"
+  const config = {
+    did: userID,
+    recipientContextName: 'Verida: Vault'
+  }
+
+  messaging.send(userID, type, data, message, config);
+
+  const listener = await messaging.onMessage(function (inboxEntry: any) {
+    console.log("mjo =====> New inbox message received", inboxEntry)
+  });
+}
+
 function sendMessage(senderName: string, recipientDID: string, messaging: Messaging) {
   const subject = `Hello from ${senderName} on Teadate`;
   const data = {
@@ -104,32 +125,41 @@ export default defineComponent({
 
         const messaging = await vContext.getMessaging();
 
-        // const messages = await messaging.getMessages();
+        const genderPromise = requestGender(this.did, messaging);
+        genderPromise.then((value) => {
+          console.log("Successfully requested gender", value);
+        });
+        genderPromise.catch((reason) => {
+          console.log("Error sending requesting gender", reason);
+        });
+        genderPromise.finally(() => {
+          console.log("Finally reached for requesting gender");
+        });
 
-        const senderDID = this.did;
-
-        const NOT_SET = "";
-        let recipientDID = NOT_SET;
-        if (michaelOsofskyDID === senderDID) {
-          recipientDID = erikaBlankDID;
-        }
-        if (erikaBlankDID === senderDID) {
-          recipientDID = michaelOsofskyDID;
-        }
-        if (NOT_SET !== recipientDID) {
-
-          const profileConnection = await vContext.getClient().openPublicProfile(senderDID, 'Verida: Vault', 'basicProfile');
-          let senderName = NOT_SET;
-          if (undefined !== profileConnection) {
-              const publicProfile = await profileConnection.getMany({}, {});
-              senderName = publicProfile.name;
-              sendMessage(senderName, recipientDID, messaging);
-          } else {
-              throw new Error("TEADATE_ERROR: profileConnection is undefined");
-          }
-        } else {
-          throw new Error("TEADATE_ERROR: Could not find a match for logged in user |" + senderDID + "|");
-        }
+      //   const senderDID = this.did;
+      //
+      //   const NOT_SET = "";
+      //   let recipientDID = NOT_SET;
+      //   if (michaelOsofskyDID === senderDID) {
+      //     recipientDID = erikaBlankDID;
+      //   }
+      //   if (erikaBlankDID === senderDID) {
+      //     recipientDID = michaelOsofskyDID;
+      //   }
+      //   if (NOT_SET !== recipientDID) {
+      //
+      //     const profileConnection = await vContext.getClient().openPublicProfile(senderDID, 'Verida: Vault', 'basicProfile');
+      //     let senderName = NOT_SET;
+      //     if (undefined !== profileConnection) {
+      //         const publicProfile = await profileConnection.getMany({}, {});
+      //         senderName = publicProfile.name;
+      //         sendMessage(senderName, recipientDID, messaging);
+      //     } else {
+      //         throw new Error("TEADATE_ERROR: profileConnection is undefined");
+      //     }
+      //   } else {
+      //     throw new Error("TEADATE_ERROR: Could not find a match for logged in user |" + senderDID + "|");
+      //   }
       }
     },
 
