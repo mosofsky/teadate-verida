@@ -19,7 +19,7 @@
 
 <script lang="ts">
 import {defineComponent} from "vue";
-import {Context} from "@verida/client-ts";
+import {Context, Messaging} from "@verida/client-ts";
 import {Account} from "@verida/account";
 import AppHeader from "@/components/Header.vue";
 import {mapState} from "vuex";
@@ -33,6 +33,40 @@ const erikaBlankDID = "did:vda:0x28e4FDb4f9DfD9c37383249D2d7b1F818e33541c";
 interface IData {
   did: string;
   contextName: string | undefined;
+}
+
+function sendMessage(senderDID: string, senderName: string, recipientDID: string, messaging: Messaging) {
+  const subject = `Hello from ${senderName} on Teadate at` + (new Date()).toLocaleTimeString();
+  const data = {
+    data: [{
+      subject: subject,
+      message: "I love your eyes. Would you like to meet for coffee...tea...or me?"
+    }]
+  };
+  const config = {
+    did: recipientDID,
+    recipientContextName: "Verida: Vault"
+  };
+
+  console.log("Sending message from |" + senderName + "|" + " with subject |" + subject + "| to |" + recipientDID + "|");
+
+  const sendPromise = messaging.send(
+      recipientDID,
+      "inbox/type/message",
+      data,
+      subject,
+      config
+  );
+
+  sendPromise.then((value) => {
+    console.log("Successfully sent message", value);
+  });
+  sendPromise.catch((reason) => {
+    console.log("Error sending message", reason);
+  });
+  sendPromise.finally(() => {
+    console.log("Finally reached for sending message");
+  });
 }
 
 export default defineComponent({
@@ -58,15 +92,9 @@ export default defineComponent({
   methods: {
     async onVeridaContextSet(vContext: Context) {
       if (vContext) {
-        // console.log("enter", vContext);
-        // You are free to delete this logging
-        // we have the veridaContext.
-        // console.log(vContext);
         this.$options.veridaContext = vContext;
 
         this.contextName = this.$options.veridaContext.getContextName();
-
-        console.log("mjo hello 0", this.$options.veridaContext);
 
         // this is a Verida Account object
         this.$options.veridaAccount = this.$options.veridaContext.getAccount();
@@ -74,21 +102,9 @@ export default defineComponent({
         // and this is how we get the DID
         this.did = await this.$options.veridaAccount.did();
 
-        // const myProfile = await vContext.openProfile('public');
-        // console.log("mjo 1 myProfile", myProfile);
-
-        // const did = 'did:vda:0x6B2a1bE81ee770cbB4648801e343E135e8D2Aa6F';
-        // const profileConnection = await vContext.openPublicProfile(did, 'Verida: Vault', 'basicProfile');
-        // const publicProfile = await profileConnection.getMany()
-        //
-        // console.log('mjo Account name', publicProfile.name)
-        // console.log('mjo Account country', publicProfile.country)
-
-        console.log("mjo hello 1");
         const messaging = await vContext.getMessaging();
-        console.log("mjo messaging", messaging);
-        const messages = await messaging.getMessages();
-        console.log("mjo messages", messages);
+
+        // const messages = await messaging.getMessages();
 
         const senderDID = this.did;
 
@@ -101,36 +117,18 @@ export default defineComponent({
           recipientDID = michaelOsofskyDID;
         }
         if (NOT_SET !== recipientDID) {
-          const subject = "Hello from Teadate " + (new Date()).toLocaleTimeString();
-          const data = {
-            data: [{
-              subject: subject,
-              message: "I love your eyes. Would you like to meet for coffee...tea...or me?"
-            }]
-          };
-          const config = {
-            did: recipientDID,
-            recipientContextName: "Verida: Vault"
-          };
-          const sendPromise = messaging.send(
-              senderDID,
-              "inbox/type/message",
-              data,
-              subject,
-              config
-          );
-          console.log("mjo called send()");
-          sendPromise.then((value) => {
-            console.log("mjo then()", value);
-          });
-          sendPromise.catch((reason) => {
-            console.log("mjo catch()", reason);
-          });
-          sendPromise.finally(() => {
-            console.log("mjo finally()");
-          });
+
+          const profileConnection = await vContext.getClient().openPublicProfile(senderDID, 'Verida: Vault', 'basicProfile');
+          let senderName = NOT_SET;
+          if (undefined !== profileConnection) {
+              const publicProfile = await profileConnection.getMany({}, {});
+              senderName = publicProfile.name;
+              sendMessage(senderDID, senderName, recipientDID, messaging);
+          } else {
+              throw new Error("TEADATE_ERROR: profileConnection is undefined");
+          }
         } else {
-          throw new Error("Could not find a match for logged in user |" + senderDID + "|");
+          throw new Error("TEADATE_ERROR: Could not find a match for logged in user |" + senderDID + "|");
         }
       }
     },
