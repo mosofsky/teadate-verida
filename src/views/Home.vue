@@ -1,23 +1,24 @@
 <template>
   <app-header @onVeridaContextSet="onVeridaContextSet"/>
   <div style="text-align: center">
-    <h1>{{ contextName }}: Home Page</h1>
-
     <div>
-      This
-      <a href="https://developers.verida.io/docs/concepts/application-contexts"
-      >application context</a
-      >
-      is called: <i>{{ contextName }}</i
-    >. Change this by editing the value of VUE_APP_CONTEXT_NAME in the .env
-      file included in this project.
+      <h1>My Profile</h1>
+      <h3>Gender: {{ gender }}</h3>
     </div>
 
+    <br/>
+    <br/>
+    <br/>
+
     <div>
-      <h2>Gender: {{ gender }}</h2>
+      <h1>My Matches</h1>
+      <ol>
+        <li>{{ match_list.hasOwnProperty(0) ? match_list[0] : "" }}</li>
+        <li>{{ match_list.hasOwnProperty(1) ? match_list[1] : "" }}</li>
+        <li>{{ match_list.hasOwnProperty(2) ? match_list[2] : "" }}</li>
+      </ol>
     </div>
 
-    <div>You logged in with DID {{ did }}</div>
   </div>
 </template>
 
@@ -32,6 +33,7 @@ const {VUE_APP_CONTEXT_NAME, VUE_APP_LOGO, VUE_APP_LOGIN_TEXT} = process.env;
 
 const michaelOsofskyDID = "did:vda:0x911Ce7c9eD78fC37DC48820b894152B7C4f16840";
 const erikaBlankDID = "did:vda:0x28e4FDb4f9DfD9c37383249D2d7b1F818e33541c";
+const pecheDiIID = "did:vda:0x944874d92F5eb69E1Defe02e76c61e76329642fb";
 
 const NOT_SET = "";
 
@@ -44,6 +46,33 @@ interface IData {
   did: string;
   contextName: string | undefined;
   gender: string | undefined;
+  match_list: string[];
+}
+
+async function populateMatchList(vContext: any, loggedInUserID: string, myThis: any) {
+  let myMatches: string[] = [];
+  if (michaelOsofskyDID === loggedInUserID) {
+    myMatches = [erikaBlankDID, pecheDiIID];
+  }
+  if (erikaBlankDID === loggedInUserID) {
+    myMatches = [michaelOsofskyDID];
+  }
+  if (pecheDiIID === loggedInUserID) {
+    myMatches = [michaelOsofskyDID];
+  }
+
+  const match_list = [];
+  for (let i=0; i<myMatches.length; i++) {
+    const matchedUserId = myMatches[i];
+    const profileConnection = await vContext.getClient().openPublicProfile(matchedUserId, 'Verida: Vault', 'basicProfile');
+    if (undefined !== profileConnection) {
+      const publicProfile = await profileConnection.getMany({}, {});
+      match_list.push(publicProfile.name);
+    } else {
+      throw new Error("TEADATE_ERROR: profileConnection is undefined in populateMatchList");
+    }
+  }
+  myThis.match_list = match_list;
 }
 
 async function requestGender(userID: string, messaging: Messaging, myThis: any) {
@@ -132,6 +161,7 @@ export default defineComponent({
       did: "",
       contextName: "",
       gender: "",
+      match_list: [],
     };
   },
   methods: {
@@ -146,6 +176,17 @@ export default defineComponent({
 
         // and this is how we get the DID
         this.did = await this.$options.veridaAccount.did();
+
+        const populateMatchListPromise = populateMatchList(vContext, this.did, this);
+        populateMatchListPromise.then((value) => {
+          console.log("Successfully populateMatchListPromise", value);
+        });
+        populateMatchListPromise.catch((reason) => {
+          console.log("Error populateMatchListPromise", reason);
+        });
+        populateMatchListPromise.finally(() => {
+          console.log("Finally populateMatchListPromise");
+        });
 
         const messaging = await vContext.getMessaging();
 
