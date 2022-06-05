@@ -35,8 +35,8 @@ interface IData {
   contextName: string | undefined;
 }
 
-function sendMessage(senderDID: string, senderName: string, recipientDID: string, messaging: Messaging) {
-  const subject = `Hello from ${senderName} on Teadate at` + (new Date()).toLocaleTimeString();
+function sendMessage(senderName: string, recipientDID: string, messaging: Messaging) {
+  const subject = `Hello from ${senderName} on Teadate`;
   const data = {
     data: [{
       subject: subject,
@@ -123,7 +123,7 @@ export default defineComponent({
           if (undefined !== profileConnection) {
               const publicProfile = await profileConnection.getMany({}, {});
               senderName = publicProfile.name;
-              sendMessage(senderDID, senderName, recipientDID, messaging);
+              sendMessage(senderName, recipientDID, messaging);
           } else {
               throw new Error("TEADATE_ERROR: profileConnection is undefined");
           }
