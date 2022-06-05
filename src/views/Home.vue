@@ -1,15 +1,15 @@
 <template>
-  <app-header @onVeridaContextSet="onVeridaContextSet" />
+  <app-header @onVeridaContextSet="onVeridaContextSet"/>
   <div style="text-align: center">
     <h1>{{ contextName }}: Home Page</h1>
 
     <div>
       This
       <a href="https://developers.verida.io/docs/concepts/application-contexts"
-        >application context</a
+      >application context</a
       >
       is called: <i>{{ contextName }}</i
-      >. Change this by editing the value of VUE_APP_CONTEXT_NAME in the .env
+    >. Change this by editing the value of VUE_APP_CONTEXT_NAME in the .env
       file included in this project.
     </div>
 
@@ -18,14 +18,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import { Context } from "@verida/client-ts";
-import { Account } from "@verida/account";
+import {defineComponent} from "vue";
+import {Context} from "@verida/client-ts";
+import {Account} from "@verida/account";
 import AppHeader from "@/components/Header.vue";
-import { mapState } from "vuex";
+import {mapState} from "vuex";
 import {Profile} from "@verida/vue-account/dist/types/src/interface";
 
-const { VUE_APP_CONTEXT_NAME, VUE_APP_LOGO, VUE_APP_LOGIN_TEXT } = process.env;
+const {VUE_APP_CONTEXT_NAME, VUE_APP_LOGO, VUE_APP_LOGIN_TEXT} = process.env;
 
 const michaelOsofskyDID = "did:vda:0x911Ce7c9eD78fC37DC48820b894152B7C4f16840";
 const erikaBlankDID = "did:vda:0x28e4FDb4f9DfD9c37383249D2d7b1F818e33541c";
@@ -56,10 +56,6 @@ export default defineComponent({
     };
   },
   methods: {
-    setDid(did: string) {
-      this.did = did;
-    },
-
     async onVeridaContextSet(vContext: Context) {
       if (vContext) {
         // console.log("enter", vContext);
@@ -94,37 +90,53 @@ export default defineComponent({
         const messages = await messaging.getMessages();
         console.log("mjo messages", messages);
 
-        const recipientDID = erikaBlankDID;
         const senderDID = this.did;
-        const subject = "Hello from Teadate"
-        const data = {
-          data: [{
-            subject: subject,
-            message: "I love your eyes. Would you like to meet for coffee...tea...or me?"
-          }]
-        };
-        const config = {
-          did: recipientDID,
-          recipientContextName: "Verida: Vault"
-        };
-        const sendPromise = messaging.send(
-            senderDID,
-            "inbox/type/message",
-            data,
-            subject,
-            config
-        );
-        console.log("mjo called send()");
-        sendPromise.then((value) => {
-             console.log("mjo then()", value);
-        });
-        sendPromise.catch((reason) => {
-          console.log("mjo catch()", reason);
-        });
-        sendPromise.finally(() => {
-          console.log("mjo finally()");
-        });
+
+        const NOT_SET = "";
+        let recipientDID = NOT_SET;
+        if (michaelOsofskyDID === senderDID) {
+          recipientDID = erikaBlankDID;
+        }
+        if (erikaBlankDID === senderDID) {
+          recipientDID = michaelOsofskyDID;
+        }
+        if (NOT_SET !== recipientDID) {
+          const subject = "Hello from Teadate " + (new Date()).toLocaleTimeString();
+          const data = {
+            data: [{
+              subject: subject,
+              message: "I love your eyes. Would you like to meet for coffee...tea...or me?"
+            }]
+          };
+          const config = {
+            did: recipientDID,
+            recipientContextName: "Verida: Vault"
+          };
+          const sendPromise = messaging.send(
+              senderDID,
+              "inbox/type/message",
+              data,
+              subject,
+              config
+          );
+          console.log("mjo called send()");
+          sendPromise.then((value) => {
+            console.log("mjo then()", value);
+          });
+          sendPromise.catch((reason) => {
+            console.log("mjo catch()", reason);
+          });
+          sendPromise.finally(() => {
+            console.log("mjo finally()");
+          });
+        } else {
+          throw new Error("Could not find a match for logged in user |" + senderDID + "|");
+        }
       }
+    },
+
+    setDid(did: string) {
+      this.did = did;
     },
   },
 });
