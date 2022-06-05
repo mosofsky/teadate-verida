@@ -23,6 +23,7 @@ import { Context } from "@verida/client-ts";
 import { Account } from "@verida/account";
 import AppHeader from "@/components/Header.vue";
 import { mapState } from "vuex";
+import {Profile} from "@verida/vue-account/dist/types/src/interface";
 
 const { VUE_APP_CONTEXT_NAME, VUE_APP_LOGO, VUE_APP_LOGIN_TEXT } = process.env;
 
@@ -77,6 +78,16 @@ export default defineComponent({
         // and this is how we get the DID
         this.did = await this.$options.veridaAccount.did();
 
+        // const myProfile = await vContext.openProfile('public');
+        // console.log("mjo 1 myProfile", myProfile);
+
+        // const did = 'did:vda:0x6B2a1bE81ee770cbB4648801e343E135e8D2Aa6F';
+        // const profileConnection = await vContext.openPublicProfile(did, 'Verida: Vault', 'basicProfile');
+        // const publicProfile = await profileConnection.getMany()
+        //
+        // console.log('mjo Account name', publicProfile.name)
+        // console.log('mjo Account country', publicProfile.country)
+
         console.log("mjo hello 1");
         const messaging = await vContext.getMessaging();
         console.log("mjo messaging", messaging);
@@ -84,18 +95,20 @@ export default defineComponent({
         console.log("mjo messages", messages);
 
         const recipientDID = erikaBlankDID;
+        const senderDID = this.did;
         const data = {
           data: ["I love your eyes. Would you like to meet for coffee...tea...or me? (data object)"]
-        }
+        };
+        const config = {
+          did: recipientDID,
+          recipientContextName: "Verida: Vault"
+        };
         const sendPromise = messaging.send(
-            recipientDID,
-            "inbox/type/message", // https://github.com/verida/schemas-core/blob/develop/inbox/type/dataSend/v0.1.0/schema.json
+            senderDID,
+            "inbox/type/message",
             data,
-            "I love your eyes. Would you like to meet for coffee...tea...or me? (message)",
-            {
-              did: recipientDID,
-              recipientContextName: VUE_APP_CONTEXT_NAME
-            }
+            "Hello from Teadate",
+            config
         );
         console.log("mjo called send()");
         sendPromise.then((value) => {
