@@ -13,6 +13,10 @@
       file included in this project.
     </div>
 
+    <div>
+      <h2>Gender: {{ gender }}</h2>
+    </div>
+
     <div>You logged in with DID {{ did }}</div>
   </div>
 </template>
@@ -23,19 +27,26 @@ import {Context, Messaging} from "@verida/client-ts";
 import {Account} from "@verida/account";
 import AppHeader from "@/components/Header.vue";
 import {mapState} from "vuex";
-import {Profile} from "@verida/vue-account/dist/types/src/interface";
 
 const {VUE_APP_CONTEXT_NAME, VUE_APP_LOGO, VUE_APP_LOGIN_TEXT} = process.env;
 
 const michaelOsofskyDID = "did:vda:0x911Ce7c9eD78fC37DC48820b894152B7C4f16840";
 const erikaBlankDID = "did:vda:0x28e4FDb4f9DfD9c37383249D2d7b1F818e33541c";
 
+const NOT_SET = "";
+
+const MALE = "Male";
+const FEMALE = "Female";
+const POSITIVE = "Positive";
+const NEGATIVE = "Negative";
+
 interface IData {
   did: string;
   contextName: string | undefined;
+  gender: string | undefined;
 }
 
-async function requestGender(userID: string, messaging: Messaging) {
+async function requestGender(userID: string, messaging: Messaging, myThis: any) {
   const type = 'inbox/type/dataRequest'
 
   const data = {
@@ -52,7 +63,19 @@ async function requestGender(userID: string, messaging: Messaging) {
   messaging.send(userID, type, data, message, config);
 
   const listener = await messaging.onMessage(function (inboxEntry: any) {
-    console.log("mjo =====> New inbox message received", inboxEntry)
+    console.log("mjo =====> New inbox message received", inboxEntry);
+    const result = inboxEntry.data.data[0].result;
+    let gender = NOT_SET;
+    if (NEGATIVE === result) {
+      gender = MALE;
+    }
+    if (POSITIVE === result) {
+      gender = FEMALE;
+    }
+    if (NOT_SET === gender) {
+      throw new Error("Could not set gender, received result=|" + result + "|");
+    }
+    myThis.gender = gender;
   });
 }
 
@@ -108,6 +131,7 @@ export default defineComponent({
     return {
       did: "",
       contextName: "",
+      gender: "",
     };
   },
   methods: {
@@ -125,7 +149,7 @@ export default defineComponent({
 
         const messaging = await vContext.getMessaging();
 
-        const genderPromise = requestGender(this.did, messaging);
+        const genderPromise = requestGender(this.did, messaging, this);
         genderPromise.then((value) => {
           console.log("Successfully requested gender", value);
         });
